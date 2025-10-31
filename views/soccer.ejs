@@ -1,0 +1,78 @@
+<%- include('header.ejs') -%>
+
+<script src='/js?name=soccer_c.js'></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        SoccerInit();
+
+    });
+</script>
+
+<div id="mediaModal" class="mediaModal">
+    <div class="mediaModalContent modalNew" id="mediaModalContent">
+        <div class="modalToolBar">
+            <div id="mediaModalCloseBtn" class="mediaModalRightTopBtn notSelectable hoverBtn" onclick="closeMediaModal();">&times;</div>
+            <div id="fullScreenBtn" class="mediaModalRightTopBtn notSelectable hoverBtn" onclick="toggleFullScreen();">&curren;</div>
+
+            <div id="topVideoControlPanel" class="topControlPanel floatLeft" style="width:80%;">
+                <div id="video_length" class="mediaModalRightTopBtn notSelectable hoverBtn" style="font-size:20px;padding-top:6px;"></div>
+                <progress id="video_progress" class="mediaModalRightTopBtn notSelectable hoverBtn" value="1" max="100" style="width:200px;">1</progress>
+                <div id="video_progress_pos" class="mediaModalRightTopBtn notSelectable hoverBtn" style="font-size:20px;padding-top:6px;">00:00</div>
+                <div id="topVideoControlPanelStub" class="mediaModalRightTopBtn notSelectable hoverBtn">&nbsp;</div>
+                <div id="topVideoControlPanelShow" class="mediaModalRightTopBtn" style ="display:none;margin-top:5px;">
+                    <div id="videoSpeedIncBtn" class="mediaModalRightTopBtn notSelectable hoverBtn" style="font-size:24px;" onclick="changeSpeed(1);">
+                        <svg fill="#aaaaaa" width="18px" height="18px" viewBox="0 0 1920 1920" >
+                            <g fill-rule="evenodd">
+                                <path d="M0 176.142 176.13.012l960.12 960.119L176.13 1920 0 1743.87l783.864-783.739L0 176.142Z"/>
+                                <path d="M784 176.142 960.13.012l960.12 960.119L960.13 1920 784 1743.87l783.86-783.739L784 176.142Z"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <div id="videoSpeedIncBtn" class="mediaModalRightTopBtn notSelectable hoverBtn" style="font-size:24px;" onclick="changeSpeed(0.1);">+</div>
+                    <div id="videoSpeedText" class="mediaModalRightTopBtn notSelectable hoverBtn textInfo" onclick="changeSpeed(0);">1.0</div>
+                    <div id="videoSpeedDecBtn" class="mediaModalRightTopBtn notSelectable hoverBtn" style="font-size:24px;" onclick="changeSpeed(-0.1);">&minus;</div>
+                    <div id="videoSpeedLabel" class="mediaModalRightTopBtn notSelectable hoverBtn" style="font-size:16px;">Speed: </div>
+                </div>
+                <div id="videoName" class="mediaModalLeftTopBtn notSelectable hoverBtn" style="width:50%;font-size:24px;">video name </div>
+            </div>
+        </div>
+        <div class="modalBottomPane">
+            <!-- <div id="navigateLeft" class="navigateBtn notSelectable hoverBtn" style="left:5%;" onclick="navigateMedia(-1);">&laquo;</div> -->
+            <div id="divVideoNew" class="notSelectable">
+                <video id='videoWrapperNew' class="videoWrapperNew" autoplay controls>
+                    <source id="videoSource" src="" type="video/mp4">
+                </video>
+            </div>
+            <!-- <div id="navigateRight" class="navigateBtn notSelectable hoverBtn" style="right:5%;" onclick="navigateMedia(1);">&raquo;</div> -->
+        </div>
+    </div>
+</div>
+
+
+<main id="main" width="100%" height="100%">
+
+    <div id="soccerVideoMain" class="soccerVideoMain" >
+
+        <!-- <div id="soccerVideo" class="soccerVideo">
+            <div class="hoverable" style="color:white;">U13-game-20230829</div>
+            <div class="hoverable" style="color:blue;">hamilton</div>
+            <img class="hoverable" src="/thumbnail?name=7fcce6f05c51b225e4b087f203413225" />
+        </div>
+        <div id="soccerVideo" class="soccerVideo">
+            <div class="hoverable" style="color:white;">U13-game-20230829</div>
+            <div class="hoverable" style="color:blue;">LondonTFC</div>
+            <img class="hoverable" src="/thumbnail?name=86863b8567c50a46657aef7348c7b82d" />
+        </div>
+        <div id="soccerVideo" class="soccerVideo">
+            <div class="hoverable" style="color:white;">U13-game-20230829</div>
+            <div class="hoverable" style="color:blue;">Brampton</div>
+            <img class="hoverable" src="/thumbnail?name=b96f9d453c6cde138af1fee8c939e55f" />
+        </div> -->
+
+    </div>
+
+</main>
+
+<%- include('footer.ejs') -%>

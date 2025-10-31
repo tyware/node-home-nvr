@@ -1,0 +1,36 @@
+{
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "axios": "^1.12.2",
+    "canvas": "^3.2.0",
+    "chokidar": "^4.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "express-ws": "^5.0.2",
+    "jimp": "^1.6.0",
+    "multer": "^2.0.2",
+    "node-fetch": "^2.7.0",
+    "sharp": "^0.34.4"
+  },
+  "name": "home-nvr",
+  "version": "1.0.0",
+  "main": "index.js",
+  "bin": {
+    "home-nvr": "bin/home.js"
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "start-all": "start-services.bat",
+    "nvr": "node bin/nvr.js",
+    "web": "node bin/home.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

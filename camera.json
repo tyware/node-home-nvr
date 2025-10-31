@@ -1,0 +1,40 @@
+{
+    "nas_keep_days": 50,
+    "download_path": "C:/Simon/CamHub/src/node-home-nvr/data/",
+    "keep_record_months": 3,
+    "nvr_host": "127.0.0.1",
+    "nvr_port": 6060,
+    "local_footages": false,
+    "motion_detection_host": "10.0.0.16",
+    "motion_detection_port": 7070,
+    "motion_detection_max_workers": 0,
+    "motion_detection_resize_width": 320,
+    "motion_detection_resize_height": 180,
+    "web_port": 8080,
+    "cameras": [
+        {
+            "name": "camera_Japan",
+            "device_sn": "Japan",
+            "url": "rtsp://127.0.0.1:8554/camera_Japan",
+            "source": "rtsp://220.254.72.200/Src/MediaInput/h264/stream_1/ch_1",
+            "audio": true,
+            "enable": true,
+            "download_clips": false,
+            "notification": false,
+            "update_existing": false,
+            "motion_detection": true
+        },
+        {
+            "name": "ffmpeg-stream",
+            "device_sn": "none",
+            "url": "rtsp://127.0.0.1:8554/ffmpeg-stream",
+            "source": "publisher",
+            "audio": true,
+            "enable": true,
+            "motion_detection": true,
+            "download_clips": false,
+            "notification": false,
+            "update_existing": false
+        }
+    ]
+}

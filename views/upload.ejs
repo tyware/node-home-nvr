@@ -1,0 +1,316 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <title>File Upload Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background: #005a9e;
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        .error {
+            color: #ff6b6b;
+        }
+
+        .success {
+            color: #51cf66;
+        }
+
+        .status {
+            padding: 10px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .upload-section {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+
+        .upload-section h2 {
+            margin-top: 0;
+            color: #fff;
+        }
+
+        .file-input-container {
+            margin: 15px 0;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            background: #007acc;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .file-input-label:hover {
+            background: #005a9e;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .selected-files {
+            margin: 10px 0;
+            padding: 10px;
+            background: #1a1a1a;
+            border-radius: 4px;
+            min-height: 40px;
+        }
+
+        .file-item {
+            padding: 5px;
+            margin: 5px 0;
+            background: #333;
+            border-radius: 3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-name {
+            flex: 1;
+        }
+
+        .file-size {
+            color: #aaa;
+            margin-left: 10px;
+        }
+
+        .upload-progress {
+            margin: 15px 0;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 25px;
+            background: #1a1a1a;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #51cf66;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin: 15px 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ccc;
+        }
+
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #444;
+            background: #1a1a1a;
+            color: white;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>File Upload Test</h1>
+        <div class="status error" id="errorStatus" style="display: none;"></div>
+        <div class="status success" id="successStatus" style="display: none;"></div>
+        <div class="upload-section">
+            <h2>File Upload</h2>
+            <div class="form-group">
+                <label for="uploadDir">Upload Directory (optional):</label>
+                <input type="text" id="uploadDir" placeholder="Leave empty for default (data/NAS/uploads/)">
+            </div>
+            <div class="form-group">
+                <label for="customFilename">Custom Filename (optional):</label>
+                <input type="text" id="customFilename" placeholder="Leave empty to use original filename">
+            </div>
+            <div class="file-input-container">
+                <label for="fileInput" class="file-input-label">Choose Files</label>
+                <input type="file" id="fileInput" multiple accept="image/*,video/*,application/*">
+                <button onclick="uploadFiles()" id="uploadBtn" disabled>Upload</button>
+                <button onclick="clearFiles()">Clear</button>
+            </div>
+            <div class="selected-files" id="selectedFiles"><span style="color: #666;">No files selected</span></div>
+            <div class="upload-progress" id="uploadProgress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%;">0%</div>
+                </div>
+                <div style="margin-top: 10px; color: #ccc;" id="uploadStatus"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let selectedFiles = [];
+        window.addEventListener('load', () => { initFileUpload(); });
+        function initFileUpload()
+        {
+            document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+        }
+        function handleFileSelect(event)
+        {
+            selectedFiles = Array.from(event.target.files);
+            displaySelectedFiles();
+            document.getElementById('uploadBtn').disabled = selectedFiles.length === 0;
+        }
+        function displaySelectedFiles()
+        {
+            const container = document.getElementById('selectedFiles');
+            if (selectedFiles.length === 0)
+            {
+                container.innerHTML = '<span style="color: #666;">No files selected</span>'; return;
+            }
+            container.innerHTML = selectedFiles.map(file => '<div class="file-item"><span class="file-name">'
+                + file.name + '</span><span class="file-size">' + formatFileSize(file.size) + '</span></div>').join('');
+        }
+        function formatFileSize(bytes)
+        {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+        function clearFiles()
+        {
+            selectedFiles = [];
+            document.getElementById('fileInput').value = '';
+            displaySelectedFiles();
+            document.getElementById('uploadBtn').disabled = true;
+            hideUploadProgress();
+        }
+        function showUploadProgress()
+        {
+            document.getElementById('uploadProgress').style.display = 'block';
+        }
+        function hideUploadProgress()
+        {
+            document.getElementById('uploadProgress').style.display = 'none';
+        }
+        function updateProgress(percent, statusText) {
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = percent + '%';
+            progressFill.textContent = Math.round(percent) + '%';
+            if (statusText) {
+                document.getElementById('uploadStatus').textContent = statusText;
+            }
+        }
+        async function uploadFiles() {
+            if (selectedFiles.length === 0) {
+                showError('Please select at least one file');
+                return;
+            }
+            const uploadBtn = document.getElementById('uploadBtn');
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Uploading...';
+            showUploadProgress();
+            updateProgress(0, 'Preparing upload...');
+            const uploadDir = document.getElementById('uploadDir').value;
+            const customFilename = document.getElementById('customFilename').value;
+            let successCount = 0;
+            let failCount = 0;
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const file = selectedFiles[i];
+                const progress = ((i) / selectedFiles.length) * 100;
+                updateProgress(progress, 'Uploading ' + (i + 1) + ' of ' + selectedFiles.length + ': ' + file.name);
+                try {
+                    const result = await uploadSingleFile(file, uploadDir, selectedFiles.length === 1 ? customFilename : '');
+                    if (result.status === 'success') {
+                        successCount++;
+                 } else {
+                    failCount++; console.error('Upload failed for', file.name, result.message);
+                }
+            }
+            catch (error) {
+                failCount++;
+                console.error('Upload error for', file.name, error);
+            }
+        }
+        updateProgress(100, 'Complete! ' + successCount + ' succeeded, ' + failCount + ' failed');
+        setTimeout(() => {
+            hideUploadProgress();
+            if (failCount === 0) {
+                showSuccess('Successfully uploaded ' + successCount + ' file(s)');
+                clearFiles();
+            } else {
+                showError('Uploaded ' + successCount + ' file(s), ' + failCount + ' failed');
+            }
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = 'Upload';
+        }, 2000); }
+        async function uploadSingleFile(file, uploadDir, customFilename) {
+            const formData = new FormData();
+            formData.append('file', file);
+            if (uploadDir) {
+                formData.append('uploadDir', uploadDir);
+            }
+            if (customFilename) {
+                formData.append('filename', customFilename);
+            }
+            const response = await fetch('/api/upload/file', { method: 'POST', body: formData });
+            return await response.json();
+        }
+        function showError(message) {
+            const errorStatus = document.getElementById('errorStatus');
+            errorStatus.textContent = message;
+            errorStatus.style.display = 'block';
+            setTimeout(() => { errorStatus.style.display = 'none'; }, 5000);
+        }
+        function showSuccess(message) {
+            const successStatus = document.getElementById('successStatus');
+            successStatus.textContent = message;
+            successStatus.style.display = 'block';
+            setTimeout(() => { successStatus.style.display = 'none'; }, 5000);
+        }
+    </script>
+</body>
+
+</html>

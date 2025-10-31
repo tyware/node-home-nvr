@@ -1,0 +1,727 @@
+<%- include('header', { title: 'Camera Configuration' }) %>
+
+<style>
+    .help-text {
+        font-size: 0.85rem;
+        color: #aaa;
+        margin-top: 4px;
+        margin-left: 25px;
+        max-width: 500px;
+    }
+    
+    .checkbox-container {
+        margin-bottom: 15px;
+    }
+    
+    .global-settings-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        width: 100%;
+        margin-bottom: 15px;
+    }
+    
+    .global-settings-column {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    @media (max-width: 768px) {
+        .global-settings-grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+    }
+</style>
+
+<div class="container">
+    <h1 style="color: var(--text-primary); margin-bottom: 30px;">Camera Configuration</h1>
+    
+    <div id="message" class="message"></div>
+    
+    <!-- Global Configuration Section -->
+    <div class="config-section">
+        <h2 style="color: #fff; margin-bottom: 20px;">Global Settings</h2>
+        <form id="globalConfigForm">
+            <div class="global-settings-grid">
+                <!-- Left Column -->
+                <div class="global-settings-column">
+                    <div class="form-group">
+                        <label for="webPort">Web Server Port:</label>
+                        <input type="number" id="webPort" name="web_port" value="<%= config.web_port || 8080 %>" required>
+                        <div class="help-text">Port for the home web interface (default: 8080)</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="nvrHost">NVR Host IP:</label>
+                        <input type="text" id="nvrHost" name="nvr_host" value="<%= config.nvr_host %>" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nvrPort">NVR Port:</label>
+                        <input type="number" id="nvrPort" name="nvr_port" value="<%= config.nvr_port %>" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="downloadPath">Footage Path:</label>
+                        <input type="text" id="downloadPath" name="download_path" value="<%= config.download_path %>" required>
+                        <div class="help-text">Path where recorded videos are saved (default: ../data)</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="nasKeepDays">NAS Keep Days:</label>
+                        <input type="number" id="nasKeepDays" name="nas_keep_days" value="<%= config.nas_keep_days %>" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="keepRecordMonths">Keep Record Months:</label>
+                        <input type="number" id="keepRecordMonths" name="keep_record_months" value="<%= config.keep_record_months %>" required>
+                    </div>
+                </div>
+                
+                <!-- Right Column -->
+                <div class="global-settings-column">
+                    <div class="form-group">
+                        <label for="motionDetectionHost">Motion Detection Host IP:</label>
+                        <input type="text" id="motionDetectionHost" name="motion_detection_host" value="<%= config.motion_detection_host || '127.0.0.1' %>" required>
+                        <div class="help-text">Host where motion detection API is running (default: 127.0.0.1)</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="motionDetectionPort">Motion Detection Port:</label>
+                        <input type="number" id="motionDetectionPort" name="motion_detection_port" value="<%= config.motion_detection_port || 7070 %>" required>
+                        <div class="help-text">Port for motion detection API (default: 7070)</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="motionDetectionMaxWorkers">Motion Detection Max Workers:</label>
+                        <input type="number" id="motionDetectionMaxWorkers" name="motion_detection_max_workers" value="<%= config.motion_detection_max_workers || 0 %>" required>
+                        <div class="help-text">Maximum number of concurrent motion detection workers (default: 0 - no detection)</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="motionDetectionResizeWidth">Motion Detection Frame Width:</label>
+                        <input type="number" id="motionDetectionResizeWidth" name="motion_detection_resize_width" value="<%= config.motion_detection_resize_width || 320 %>" required>
+                        <div class="help-text">Width to resize frames before motion detection (default: 320). smaller, faster but less precise</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="motionDetectionResizeHeight">Motion Detection Frame Height:</label>
+                        <input type="number" id="motionDetectionResizeHeight" name="motion_detection_resize_height" value="<%= config.motion_detection_resize_height || 180 %>" required>
+                        <div class="help-text">Height to resize frames before motion detection (default: 180). smaller, faster but less precise</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Full Width Item -->
+            <div class="checkbox-container" style="margin-top: 15px;">
+                <input type="checkbox" id="localFootages" name="local_footages" <%= config.local_footages ? 'checked' : '' %>>
+                <label for="localFootages">Local Footage (NVR and Web UI are on same machine)</label>
+                <div class="help-text">
+                    When enabled, the web interface accesses footage files directly from the local filesystem. 
+                    When disabled, footage requests are proxied to the NVR server.
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Global Settings</button>
+        </form>
+    </div>
+    
+    <!-- Camera Management Section -->
+    <div class="config-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="color: #fff;">Camera Management</h2>
+            <button class="btn btn-success" onclick="openAddCameraModal()">Add Camera</button>
+        </div>
+        
+        <div class="camera-list" id="cameraList">
+            <% config.cameras.forEach(function(camera, index) { %>
+                <div class="camera-item <%= !camera.enable ? 'disabled' : '' %>" data-index="<%= index %>">
+                    <div class="camera-header">
+                        <div class="camera-name"><%= camera.name %></div>
+                        <div class="camera-status <%= camera.enable ? 'status-enabled' : 'status-disabled' %>">
+                            <%= camera.enable ? 'Enabled' : 'Disabled' %>
+                        </div>
+                    </div>
+                    <div class="camera-details">
+                        <div class="camera-detail"><strong>Device SN:</strong> <%= camera.device_sn %></div>
+                        <div class="camera-detail"><strong>Audio:</strong> <%= camera.audio ? 'Yes' : 'No' %></div>
+                        <div class="camera-detail"><strong>URL:</strong> <%= camera.url %></div>
+                        <div class="camera-detail"><strong>Source:</strong> <%= camera.source !== undefined ? camera.source : 'N/A' %></div>
+                        <div class="camera-detail"><strong>Download Clips:</strong> <%= camera.download_clips ? 'Yes' : 'No' %></div>
+                        <div class="camera-detail"><strong>Notifications:</strong> <%= camera.notification ? 'Yes' : 'No' %></div>
+                        <div class="camera-detail"><strong>Motion Detection:</strong> <%= camera.motion_detection ? 'Yes' : 'No' %></div>
+                    </div>
+                    <div class="camera-actions">
+                        <button class="btn btn-primary" onclick="editCamera(<%= index %>)">Edit</button>
+                        <button class="btn btn-<%= camera.enable ? 'secondary' : 'success' %>" onclick="toggleCamera(<%= index %>)">
+                            <%= camera.enable ? 'Disable' : 'Enable' %>
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteCamera(<%= index %>)">Delete</button>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Camera Modal -->
+<div id="cameraModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">Add Camera</h3>
+            <span class="close" onclick="closeCameraModal()">&times;</span>
+        </div>
+        <form id="cameraForm">
+            <input type="hidden" id="cameraIndex" value="-1">
+            <div class="form-group">
+                <label for="cameraName">Name:</label>
+                <input type="text" id="cameraName" name="name" required readonly="readonly">
+            </div>
+            <div class="form-group">
+                <label for="deviceSn">Device Serial Number:</label>
+                <input type="text" id="deviceSn" name="device_sn" required>
+            </div>
+            <div class="form-group">
+                <label for="cameraUrl">RTSP URL:</label>
+                <input type="url" id="cameraUrl" name="url" required>
+            </div>
+            <div class="form-group">
+                <label for="cameraSource">Source:</label>
+                <input type="text" id="cameraSource" name="source" placeholder="Optional source/publisher">
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="cameraAudio" name="audio" checked>
+                <label for="cameraAudio">Enable Audio</label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="cameraEnable" name="enable" checked>
+                <label for="cameraEnable">Enable Camera</label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="downloadClips" name="download_clips">
+                <label for="downloadClips">Download Clips</label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="notification" name="notification">
+                <label for="notification">Enable Notifications</label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="motionDetection" name="motion_detection">
+                <label for="motionDetection">Enable Motion Detection</label>
+                <div class="help-text">When enabled, motion events will be detected and recorded from this camera's footage</div>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="updateExisting" name="update_existing" onchange="handleUpdateCheckboxChange()">
+                <label id="updateExistingLabel" for="updateExisting">Update by Name (otherwise by URL)</label>
+            </div>
+            <div style="margin-top: 20px;">
+                <button type="submit" class="btn btn-success">Save Camera</button>
+                <button type="button" class="btn btn-secondary" onclick="closeCameraModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let cameras = <%- JSON.stringify(config.cameras) %>;
+    let updateCheckbox = document.getElementById('updateExisting');
+
+    // Global Configuration Form Handler
+    document.getElementById('globalConfigForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const config = {};
+        
+        for (let [key, value] of formData.entries()) {
+            if (key === 'nvr_port' || key === 'nas_keep_days' || key === 'keep_record_months' || 
+                key === 'motion_detection_port' || key === 'web_port' || key === 'motion_detection_max_workers' ||
+                key === 'motion_detection_resize_width' || key === 'motion_detection_resize_height') {
+                config[key] = parseInt(value);
+            } else if (key === 'local_footages') {
+                config[key] = true;
+            } else {
+                config[key] = value;
+            }
+        }
+        
+        // Handle unchecked checkboxes
+        if (!formData.has('local_footages')) {
+            config.local_footages = false;
+        }
+        
+        // Make sure motion detection host and port have default values
+        if (!config.motion_detection_host) {
+            config.motion_detection_host = '127.0.0.1';
+        }
+        
+        if (!config.motion_detection_port) {
+            config.motion_detection_port = 7070;
+        }
+        
+        // Make sure web port has default value
+        if (!config.web_port) {
+            config.web_port = 8080;
+        }
+        
+        // Make sure motion detection max workers has default value
+        if (!config.motion_detection_max_workers) {
+            config.motion_detection_max_workers = 0;
+        }
+        
+        // Make sure motion detection resize dimensions have default values
+        if (!config.motion_detection_resize_width) {
+            config.motion_detection_resize_width = 320;
+        }
+        
+        if (!config.motion_detection_resize_height) {
+            config.motion_detection_resize_height = 180;
+        }
+        
+        fetch('/api/config/global', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(config)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showMessage('Global configuration saved successfully!', 'success');
+            } else {
+                showMessage('Failed to save global configuration: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showMessage('Error saving global configuration: ' + error.message, 'error');
+        });
+    });
+    
+    // Camera Form Handler
+    document.getElementById('cameraForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const nameField = document.getElementById('cameraName');
+        const urlField = document.getElementById('cameraUrl');
+
+        const formData = new FormData(this);
+        const camera = {};
+        const index = parseInt(document.getElementById('cameraIndex').value);
+        const updateExisting = formData.has('update_existing');
+        
+        for (let [key, value] of formData.entries()) {
+            if (key === 'audio' || key === 'enable' || key === 'download_clips' || key === 'notification' || key === 'motion_detection' || key === 'update_existing') {
+                camera[key] = true;
+            } else {
+                camera[key] = value;
+            }
+        }
+        
+        // Handle unchecked checkboxes
+        if (!formData.has('audio')) camera.audio = false;
+        if (!formData.has('enable')) camera.enable = false;
+        if (!formData.has('download_clips')) camera.download_clips = false;
+        if (!formData.has('notification')) camera.notification = false;
+        if (!formData.has('motion_detection')) camera.motion_detection = false;
+        if (!formData.has('update_existing')) camera.update_existing = false;
+        
+        let url, method;
+        
+        if (index >= 0) {
+            // Editing existing camera by index
+            url = `/api/camera/${index}`;
+            method = 'PUT';
+        } else if (updateExisting) {
+            // Adding new camera with update existing option
+            url = '/api/camera/update-or-create';
+            method = 'POST';
+        } else {
+            // Adding new camera normally
+            url = '/api/camera';
+            method = 'POST';
+        }
+        
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(camera)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showMessage(`Camera ${index >= 0 ? 'updated' : 'added'} successfully!`, 'success');
+                
+                // Update the camera in the UI without page reload
+                if (index >= 0) {
+                    // Update existing camera in the list
+                    updateCameraInUI(index, camera);
+                    closeCameraModal();
+                } else {
+                    // For new cameras or more complex updates, fetch the updated camera list
+                    fetchUpdatedCameraList();
+                }
+            } else {
+                showMessage(`Failed to ${index >= 0 ? 'update' : 'add'} camera: ` + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showMessage(`Error ${index >= 0 ? 'updating' : 'adding'} camera: ` + error.message, 'error');
+        });
+    });
+    
+    function openAddCameraModal() {
+        document.getElementById('modalTitle').textContent = 'Add Camera';
+        document.getElementById('cameraIndex').value = '-1';
+        document.getElementById('cameraForm').reset();
+        document.getElementById('cameraEnable').checked = true;
+        document.getElementById('cameraAudio').checked = true;
+        document.getElementById('cameraSource').value = '';
+        document.getElementById('motionDetection').checked = false;
+        document.getElementById('updateExisting').checked = false;
+        document.getElementById('cameraName') = false;
+        
+        // Apply field states based on checkbox
+        handleUpdateCheckboxChange();
+        
+        const modal = document.getElementById('cameraModal');
+        modal.style.display = 'block';
+        modal.classList.add('show');
+        
+        // Focus on first input that should be editable
+        setTimeout(() => {
+            document.getElementById('cameraName').focus();
+        }, 100);
+    }
+    
+    function editCamera(index) {
+        const camera = cameras[index];
+        
+        document.getElementById('modalTitle').textContent = 'Edit Camera';
+        document.getElementById('cameraIndex').value = index;
+        document.getElementById('cameraName').value = camera.name;
+        document.getElementById('deviceSn').value = camera.device_sn;
+        document.getElementById('cameraUrl').value = camera.url;
+        document.getElementById('cameraSource').value = camera.source || '';
+        document.getElementById('cameraAudio').checked = camera.audio;
+        document.getElementById('cameraEnable').checked = camera.enable;
+        document.getElementById('downloadClips').checked = camera.download_clips || false;
+        document.getElementById('notification').checked = camera.notification || false;
+        document.getElementById('motionDetection').checked = camera.motion_detection || false;
+        
+        // When editing an existing camera, all fields should be enabled
+        document.getElementById('updateExisting').checked = true;
+        const nameField = document.getElementById('cameraName');
+        const urlField = document.getElementById('cameraUrl');
+        
+        // Enable both fields for editing
+        nameField.removeAttribute('readonly');
+        nameField.style.backgroundColor = '';
+        nameField.style.color = '';
+        nameField.style.borderColor = '';
+        nameField.style.opacity = '';
+        
+        urlField.removeAttribute('readonly');
+        urlField.style.backgroundColor = '';
+        urlField.style.color = '';
+        urlField.style.borderColor = '';
+        urlField.style.opacity = '';
+        
+        const modal = document.getElementById('cameraModal');
+        modal.style.display = 'block';
+        modal.classList.add('show');
+        
+        handleUpdateCheckboxChange();
+
+        // Focus on first input
+        setTimeout(() => {
+            document.getElementById('cameraName').focus();
+        }, 100);
+    }
+    
+    function toggleCamera(index) {
+        const camera = cameras[index];
+        camera.enable = !camera.enable;
+        
+        fetch(`/api/camera/${index}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(camera)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showMessage(`Camera ${camera.enable ? 'enabled' : 'disabled'} successfully!`, 'success');
+                // Update this camera in the UI without page reload
+                updateCameraInUI(index, camera);
+            } else {
+                showMessage('Failed to toggle camera: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showMessage('Error toggling camera: ' + error.message, 'error');
+        });
+    }
+    
+    function deleteCamera(index) {
+        if (confirm('Are you sure you want to delete this camera?')) {
+            fetch(`/api/camera/${index}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showMessage('Camera deleted successfully!', 'success');
+                    // Since deletion changes indexes, fetch the whole camera list
+                    fetchUpdatedCameraList();
+                } else {
+                    showMessage('Failed to delete camera: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('Error deleting camera: ' + error.message, 'error');
+            });
+        }
+    }
+    
+    function closeCameraModal() {
+        const modal = document.getElementById('cameraModal');
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
+    }
+    
+    function showMessage(message, type) {
+        const messageDiv = document.getElementById('message');
+        messageDiv.textContent = message;
+        messageDiv.className = `message ${type}`;
+        messageDiv.style.display = 'block';
+        
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 20000);
+    }
+    
+    // Handle update checkbox change
+    function handleUpdateCheckboxChange() {
+        const updateCheckbox = document.getElementById('updateExisting');
+        const nameField = document.getElementById('cameraName');
+        const urlField = document.getElementById('cameraUrl');
+        
+        // Determine if we're in dark mode for appropriate styling
+        const isDarkMode = document.documentElement.classList.contains('dark-theme');
+        
+        // Define colors for disabled fields based on theme
+        const disabledBgColor = isDarkMode ? '#2a2a2a' : '#e9ecef';  // darker in dark mode, lighter in light mode
+        const disabledTextColor = isDarkMode ? '#cccccc' : '#495057'; // lighter in dark mode, darker in light mode
+        const disabledBorderColor = isDarkMode ? '#444' : '#ced4da'; // theme appropriate borders
+        
+        const disableField = document.getElementById('modalTitle').textContent == 'Add Camera' ? false : true;
+        if(disableField) {
+            updateCheckbox.style.display = 'block';
+            document.getElementById('updateExistingLabel').style.display = 'block';
+            if (updateCheckbox.checked) {
+                // Update by name - disable name field, enable URL field
+                nameField.setAttribute('readonly', 'readonly'); // Add readonly attribute for additional restriction
+                nameField.style.backgroundColor = disabledBgColor;
+                nameField.style.color = disabledTextColor;
+                nameField.style.borderColor = disabledBorderColor;
+                nameField.style.opacity = '1'; // Ensure text is fully opaque
+                
+                // Reset URL field
+                urlField.removeAttribute('readonly');
+                urlField.style.backgroundColor = '';
+                urlField.style.color = '';
+                urlField.style.borderColor = '';
+                urlField.style.opacity = '';
+            } else {
+                // Update by URL - enable name field, disable URL field
+                nameField.removeAttribute('readonly');
+                nameField.style.backgroundColor = '';
+                nameField.style.color = '';
+                nameField.style.borderColor = '';
+                nameField.style.opacity = '';
+                
+                // Disable URL field
+                urlField.setAttribute('readonly', 'readonly'); // Add readonly attribute for additional restriction
+                urlField.style.backgroundColor = disabledBgColor;
+                urlField.style.color = disabledTextColor;
+                urlField.style.borderColor = disabledBorderColor;
+                urlField.style.opacity = '1'; // Ensure text is fully opaque
+            }
+        }
+        else {
+            updateCheckbox.style.display = 'none';
+            document.getElementById('updateExistingLabel').style.display = 'none';
+            nameField.removeAttribute('readonly');
+            nameField.style.backgroundColor = '';
+            nameField.style.color = '';
+            nameField.style.borderColor = '';
+            nameField.style.opacity = '';
+    
+            urlField.removeAttribute('readonly');
+            urlField.style.backgroundColor = '';
+            urlField.style.color = '';
+            urlField.style.borderColor = '';
+            urlField.style.opacity = '';
+        }
+    }
+    
+    // Add event listener for the update checkbox
+    document.addEventListener('DOMContentLoaded', function() {
+        const updateCheckbox = document.getElementById('updateExisting');
+        if (updateCheckbox) {
+            updateCheckbox.addEventListener('change', handleUpdateCheckboxChange);
+            // Initialize the field states immediately
+            setTimeout(handleUpdateCheckboxChange, 0);
+        }
+        
+        // Listen for theme changes to update disabled input styles
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'attributes' && 
+                    mutation.attributeName === 'class' && 
+                    mutation.target === document.documentElement) {
+                    // Theme has changed, update input field styles
+                    if (updateCheckbox) {
+                        handleUpdateCheckboxChange();
+                    }
+                }
+            });
+        });
+        
+        observer.observe(document.documentElement, { 
+            attributes: true,
+            attributeFilter: ['class']
+        });
+        
+        // Also listen for stylesheet changes (fallback method)
+        document.addEventListener('themeChanged', function() {
+            if (updateCheckbox) {
+                handleUpdateCheckboxChange();
+            }
+        });
+    });
+    
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('cameraModal');
+        if (event.target === modal) {
+            closeCameraModal();
+        }
+    }
+    
+    // ESC key to close modal
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const modal = document.getElementById('cameraModal');
+            if (modal.style.display === 'block' || modal.classList.contains('show')) {
+                closeCameraModal();
+            }
+        }
+    });
+    
+    // Update a specific camera in the UI without page reload
+    function updateCameraInUI(index, cameraData) {
+        // Find the camera item in the DOM
+        const cameraItem = document.querySelector(`.camera-item[data-index="${index}"]`);
+        if (!cameraItem) return;
+        
+        // Update camera item class based on enabled status
+        if (cameraData.enable) {
+            cameraItem.classList.remove('disabled');
+        } else {
+            cameraItem.classList.add('disabled');
+        }
+        
+        // Update camera name
+        const cameraNameElem = cameraItem.querySelector('.camera-name');
+        if (cameraNameElem) {
+            cameraNameElem.textContent = cameraData.name;
+        }
+        
+        // Update status
+        const statusElem = cameraItem.querySelector('.camera-status');
+        if (statusElem) {
+            statusElem.className = `camera-status ${cameraData.enable ? 'status-enabled' : 'status-disabled'}`;
+            statusElem.textContent = cameraData.enable ? 'Enabled' : 'Disabled';
+        }
+        
+        // Update camera details
+        const detailsElem = cameraItem.querySelector('.camera-details');
+        if (detailsElem) {
+            detailsElem.innerHTML = `
+                <div class="camera-detail"><strong>Device SN:</strong> ${cameraData.device_sn}</div>
+                <div class="camera-detail"><strong>Audio:</strong> ${cameraData.audio ? 'Yes' : 'No'}</div>
+                <div class="camera-detail"><strong>URL:</strong> ${cameraData.url}</div>
+                <div class="camera-detail"><strong>Source:</strong> ${cameraData.source !== undefined ? cameraData.source : 'N/A'}</div>
+                <div class="camera-detail"><strong>Download Clips:</strong> ${cameraData.download_clips ? 'Yes' : 'No'}</div>
+                <div class="camera-detail"><strong>Notifications:</strong> ${cameraData.notification ? 'Yes' : 'No'}</div>
+                <div class="camera-detail"><strong>Motion Detection:</strong> ${cameraData.motion_detection ? 'Yes' : 'No'}</div>
+            `;
+        }
+        
+        // Update toggle button
+        const toggleBtn = cameraItem.querySelector('.camera-actions button:nth-child(2)');
+        if (toggleBtn) {
+            toggleBtn.className = `btn btn-${cameraData.enable ? 'secondary' : 'success'}`;
+            toggleBtn.textContent = cameraData.enable ? 'Disable' : 'Enable';
+        }
+        
+        // Update cameras array to keep local state in sync
+        cameras[index] = cameraData;
+    }
+    
+    // Fetch updated camera list from server
+    function fetchUpdatedCameraList() {
+        fetch('/getCameraList')
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.cameras) {
+                    // Update the global cameras array
+                    cameras = data.cameras;
+                    
+                    // Rebuild the camera list in the UI
+                    const cameraListElem = document.getElementById('cameraList');
+                    if (cameraListElem) {
+                        let html = '';
+                        cameras.forEach((camera, index) => {
+                            html += `
+                                <div class="camera-item ${!camera.enable ? 'disabled' : ''}" data-index="${index}">
+                                    <div class="camera-header">
+                                        <div class="camera-name">${camera.name}</div>
+                                        <div class="camera-status ${camera.enable ? 'status-enabled' : 'status-disabled'}">
+                                            ${camera.enable ? 'Enabled' : 'Disabled'}
+                                        </div>
+                                    </div>
+                                    <div class="camera-details">
+                                        <div class="camera-detail"><strong>Device SN:</strong> ${camera.device_sn}</div>
+                                        <div class="camera-detail"><strong>Audio:</strong> ${camera.audio ? 'Yes' : 'No'}</div>
+                                        <div class="camera-detail"><strong>URL:</strong> ${camera.url}</div>
+                                        <div class="camera-detail"><strong>Source:</strong> ${camera.source !== undefined ? camera.source : 'N/A'}</div>
+                                        <div class="camera-detail"><strong>Download Clips:</strong> ${camera.download_clips ? 'Yes' : 'No'}</div>
+                                        <div class="camera-detail"><strong>Notifications:</strong> ${camera.notification ? 'Yes' : 'No'}</div>
+                                        <div class="camera-detail"><strong>Motion Detection:</strong> ${camera.motion_detection ? 'Yes' : 'No'}</div>
+                                    </div>
+                                    <div class="camera-actions">
+                                        <button class="btn btn-primary" onclick="editCamera(${index})">Edit</button>
+                                        <button class="btn btn-${camera.enable ? 'secondary' : 'success'}" onclick="toggleCamera(${index})">
+                                            ${camera.enable ? 'Disable' : 'Enable'}
+                                        </button>
+                                        <button class="btn btn-danger" onclick="deleteCamera(${index})">Delete</button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        cameraListElem.innerHTML = html;
+                    }
+                    
+                    // Close the modal
+                    closeCameraModal();
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching updated camera list:', error);
+                showMessage('Error updating the camera list. Please reload the page.', 'error');
+            });
+    }
+    
+</script>
+
+<%- include('footer') %>

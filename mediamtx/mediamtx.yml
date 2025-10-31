@@ -1,0 +1,24 @@
+api: yes
+apiAddress: :9997
+
+# Enable Prometheus-compatible metrics.
+metrics: yes
+# Address of the metrics HTTP listener.
+metricsAddress: :9998
+
+rtspAddress: :8554
+
+hls: yes
+hlsAddress: :8888
+hlsAllowOrigin: '*'
+hlsVariant: fmp4
+
+paths:
+  camera_Japan:
+    source: rtsp://220.254.72.200/Src/MediaInput/h264/stream_1/ch_1
+    sourceOnDemand: false
+
+  ffmpeg-stream:
+    source: publisher
+    sourceOnDemand: false
+
