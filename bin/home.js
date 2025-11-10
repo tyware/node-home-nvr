@@ -719,6 +719,10 @@ function saveCameraConfigToJson() {
     try {
         fs.writeFileSync(path.join(__dirname, '../camera.json'), JSON.stringify(cameras, null, 4));
         console.log('Camera configuration saved to camera.json');
+        if(cameras.local_footages) {
+            fs.writeFileSync(path.join(__dirname, '../camera_nvr.json'), JSON.stringify(cameras, null, 4));
+            console.log('Camera configuration saved to camera_nvr.json');
+        }
         return true;
     } catch (error) {
         console.error('Error saving camera config to camera.json:', error);

@@ -1,6 +1,6 @@
 {
     "nas_keep_days": 50,
-    "download_path": "C:/Simon/CamHub/src/node-home-nvr/data/",
+    "download_path": "./data/",
     "keep_record_months": 3,
     "nvr_host": "127.0.0.1",
     "nvr_port": 6060,
