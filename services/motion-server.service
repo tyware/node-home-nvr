@@ -1,0 +1,15 @@
+[Unit]
+Description=Home server (port 7070)
+
+[Service]
+Type=simple
+User=pi
+ExecStart=/home/pi/family/node-home-nvr/start_motion_server.sh
+Restart=always
+
+WatchdogSec=43200
+WorkingDirectory=/home/pi/family/node-home-nvr/
+
+[Install]
+WantedBy=multi-user.target
+
