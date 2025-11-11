@@ -13,6 +13,7 @@ chmod +x mediamtx/mediamtx
 chmod +w mediamtx/mediamtx.yml
 chmod +x start_motion_server.sh
 chmod +x start_services.sh
+chmod +x stop_services.sh
 
 tar -xvzf libext/linux/libopencv411.tar.gz -C libext/linux
 chmod +x libext/linux/motion_server
@@ -29,4 +30,8 @@ sed -i "s|/home-nvr-path|$CURRENT_DIR|g" services/motion-server.service
 sudo cp -f services/home.service /etc/systemd/system/
 sudo cp -f services/nvr.service /etc/systemd/system/
 sudo cp -f services/motion-server.service /etc/systemd/system/
+
+sudo systemctl enable home.service
+sudo systemctl enable nvr.service
+sudo systemctl enable motion-server.service
 
