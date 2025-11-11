@@ -71,7 +71,7 @@ motion_server.exe 7070
 ## configure
 check Configuration section.
 
-After configure, run below to restart services
+After configure, run below to restart services for Raspberry Pi or manually re-run the above steps for Windows.
 ```bash
 ./start_services.sh
 ```
