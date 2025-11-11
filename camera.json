@@ -4,7 +4,7 @@
     "keep_record_months": 3,
     "nvr_host": "127.0.0.1",
     "nvr_port": 6060,
-    "local_footages": false,
+    "local_footages": true,
     "motion_detection_host": "10.0.0.16",
     "motion_detection_port": 7070,
     "motion_detection_max_workers": 0,
