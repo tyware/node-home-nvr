@@ -45,11 +45,14 @@ chmod +x install.sh
 #### start 3 services
 cd node-home-nvr
 ./start_services.sh
+```
 
 ## configure
 check Configuration
 After configure, run below to restart services
+```bash
 ./start_services.sh
+```
 
 ### Configuration
 
@@ -195,9 +198,6 @@ node-home-nvr/
 
 ### Testing
 ```bash
-# Test motion detection
-node bin/test_motion.js
-
 # Access file upload testing
 http://localhost:8080/upload
 ```
