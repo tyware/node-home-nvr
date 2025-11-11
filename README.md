@@ -32,53 +32,52 @@ The system consists of three main components:
 
 ## 📦 Installation
 
-### Prerequisites
-- Node.js 16.x or 18.x
-- FFmpeg (for video processing)
-- Visual C++ Redistributable (for motion_server.exe)
-- Git (for cloning the repository)
-
-### Setup
+### Raspberry Pi
 
 ```bash
-# Clone the repository
-git clone <repository-url>
+#### download install.sh
+https://github.com/tyware/node-home-nvr/blob/main/install.sh
+chmod +x install.sh
+
+#### install
+./install.sh
+
+#### start 3 services
 cd node-home-nvr
+./start_services.sh
 
-# Install dependencies
-npm install
-
-# Install specific version requirements
-npm install node-fetch@2
-
-# Optional: Install additional image processing libraries
-npm install sharp canvas
-```
+## configure
+check Configuration
+After configure, run below to restart services
+./start_services.sh
 
 ### Configuration
 
-1. **Camera Configuration**: Edit `camera.json` to configure your cameras
-2. **Global Settings**: Adjust settings like ports, storage paths, and motion detection
-3. **MediaMTX**: Configure RTSP server settings in `mediamtx.yml`
+http://10.0.0.2/8080 (sample)
 
-## 🚀 Usage
+1. **Global Settings**: Adjust settings like ports, storage paths, and motion detection
+set "NVR Host IP", "Motion Detection Host IP", and max motion workers
 
-### Starting the System
+![Global Settings](images/global_settings.jpg)
 
-```bash
-# Start all services (recommended)
-npm run start-all
-# or
-start-services.bat
+2. **Cameras Settings**: Add/Edit/Delete camera
 
-# Start individual services
-npm run web    # Web interface (default: port 8080)
-npm run nvr    # NVR service (default: port 6060)
-```
+![Camera Settings](images/edit_camera.jpg)
+
+3. **Cameras**: View live stream, view footage
+
+![Camera](images/Cameras.jpg)
+
+View live:
+![Live](images/live.jpg)
+
+View footage:
+![Footage](images/footage.jpg)
+
 
 ### Web Interface
 
-Access the web interface at `http://localhost:8080`
+Access the web interface at `http://127.0.0.1:8080`
 
 - **Security Page** (`/`) - Live camera feeds and recorded footage
 - **Camera Config** (`/camera-config`) - Camera management and settings
@@ -200,7 +199,7 @@ node-home-nvr/
 node bin/test_motion.js
 
 # Access file upload testing
-http://localhost:8080/test
+http://localhost:8080/upload
 ```
 
 ### API Development
@@ -239,7 +238,7 @@ The system provides a comprehensive REST API for integration with external syste
 
 ## 📄 License
 
-ISC License - See package.json for details.
+MIT
 
 ## 🤝 Contributing
 
@@ -249,4 +248,3 @@ ISC License - See package.json for details.
 4. Test thoroughly
 5. Submit a pull request
 
-For detailed information about motion detection optimization and troubleshooting, see [MOTION-OPTIMIZATION.md](./MOTION-OPTIMIZATION.md).
