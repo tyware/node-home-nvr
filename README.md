@@ -106,7 +106,7 @@ Access the web interface at `http://127.0.0.1:8080`
 ## 🎯 Motion Detection
 
 ### OpenCV-Powered Detection
-The system uses a native C++ motion detection service (`motion_server.exe`) built with OpenCV for high-performance video analysis:
+The system uses a native C++ motion detection service (`motion_server.exe` in Windows, `motion_server` in Raspberry Pi) built with OpenCV for high-performance video analysis:
 
 - **Native Performance** - Optimized C++ implementation for fast processing
 - **OpenCV Integration** - Leverages mature computer vision algorithms
@@ -117,7 +117,7 @@ The system uses a native C++ motion detection service (`motion_server.exe`) buil
 
 ### Architecture
 The motion detection service runs as a separate executable:
-- **Standalone Service** - `bin/motion_server.exe` runs independently
+- **Standalone Service** - `libext/win32/motion_server.exe` or `libext/linux/motion_server` runs independently
 - **REST API Interface** - Communicates via HTTP API on configurable port
 - **Multi-camera Support** - Handles multiple camera streams simultaneously
 - **Worker Pool** - Configurable number of worker threads for parallel processing
