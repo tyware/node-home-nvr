@@ -89,7 +89,7 @@
                     <div class="form-group">
                         <label for="motionDetectionMaxWorkers">Motion Detection Max Workers:</label>
                         <input type="number" id="motionDetectionMaxWorkers" name="motion_detection_max_workers" value="<%= config.motion_detection_max_workers || 0 %>" required>
-                        <div class="help-text">Maximum number of concurrent motion detection workers (default: 0 - no detection)</div>
+                        <div class="help-text">Maximum number of concurrent motion detection workers (default: 0 - no detection), restart required</div>
                     </div>
                     <div class="form-group">
                         <label for="motionDetectionResizeWidth">Motion Detection Frame Width:</label>
@@ -372,7 +372,7 @@
         document.getElementById('cameraSource').value = '';
         document.getElementById('motionDetection').checked = false;
         document.getElementById('updateExisting').checked = false;
-        document.getElementById('cameraName') = false;
+        document.getElementById('cameraName').checked = false;
         
         // Apply field states based on checkbox
         handleUpdateCheckboxChange();
