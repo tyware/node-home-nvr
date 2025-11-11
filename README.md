@@ -46,13 +46,36 @@ chmod +x install.sh
 cd node-home-nvr
 ./start_services.sh
 ```
+### Windows
+The below needs to be installed.
+1. node.js
+2. npm
 
+#### Steps
+run cmd.exe (Windows Command Prompt)
+```
+git clone https://github.com/tyware/node-home-nvr.git node-home-nvr
+cd node-home-nvr
+node bin/home.js
+```
+run a new cmd.exe
+```
+cd node-home-nvr
+node bin/nvr.js
+```
+run the third cmd.exe
+```
+cd node-home-nvr/libext/win32
+motion_server.exe 7070
+```
 ## configure
-check Configuration
+check Configuration section.
+
 After configure, run below to restart services
 ```bash
 ./start_services.sh
 ```
+
 
 ### Configuration
 
