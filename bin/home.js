@@ -933,7 +933,7 @@ app.get('/listCameras', async (req, res) => {
 setInterval(() => {
     if(cameras.motion_detection_max_workers && cameras.motion_detection_max_workers > 0) {
         // Check if motion service is available
-        axios.get(`http://${cameras.motion_detection_host}:${cameras.motion_detection_port}/health`)
+        axios.get(`http://${cameras.motion_detection_host}:${cameras.motion_detection_port}/health?nvr_host=${cameras.nvr_host}&nvr_port=${cameras.nvr_port}&&max_workers=${cameras.motion_detection_max_workers}`)
             .then(response => {
                 console.log(`Motion service health: ${response.data}`);
             })
