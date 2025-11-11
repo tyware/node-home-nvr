@@ -12,6 +12,7 @@ npm install
 chmod +x mediamtx/mediamtx
 chmod +w mediamtx/mediamtx.yml
 chmod +x start_motion_server.sh
+chmod +x start_services.sh
 
 tar -xvzf libext/linux/libopencv411.tar.gz -C libext/linux
 chmod +x libext/linux/motion_server
