@@ -72,11 +72,16 @@ motion_server.exe 7070
 ## configure
 check Configuration section.
 
-After configure, run below to restart services for Raspberry Pi or manually re-run the above steps for Windows.
+After configure, run below to restart services for Raspberry Pi.
 ```bash
 ./start_services.sh
 ```
-
+manually re-run the above steps for Windows.
+```
+node bin/home.js
+node bin/nvr.js
+motion_server.exe 7070
+```
 
 ### Configuration
 
