@@ -50,8 +50,7 @@ cd node-home-nvr
 ```
 ### Windows
 The below needs to be installed.
-1. node.js: [Download](https://nodejs.org/dist/v24.11.1/node-v24.11.1-x64.msi)
-2. npm
+1. node.js and npm: [nodejs Download](https://nodejs.org/dist/v24.11.1/node-v24.11.1-x64.msi)
 
 #### Steps
 run cmd.exe (Windows Command Prompt)
