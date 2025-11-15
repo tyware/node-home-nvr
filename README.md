@@ -85,7 +85,7 @@ motion_server.exe 7070
 
 ### Configuration
 
-http://10.0.0.2/8080 (sample)
+http://127.0.0.1/8080 (sample)
 
 1. **Global Settings**: Adjust settings like ports, storage paths, and motion detection
 set "NVR Host IP", "Motion Detection Host IP", and max motion workers
