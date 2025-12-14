@@ -107,6 +107,7 @@ app.post('/login', (req, res) => {
 app.get(['/', '/camera_config'], (req, res) => {
     // Create a clean copy of the cameras config without circular references
     const cleanConfig = {
+        web_port: cameras.web_port,
         nas_keep_days: cameras.nas_keep_days,
         download_path: cameras.download_path,
         keep_record_months: cameras.keep_record_months,
