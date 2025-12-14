@@ -1,10 +1,10 @@
 [Unit]
-Description=Home server (port 6060)
+Description=Home NVR monitor
 
 [Service]
 Type=simple
 User=pi
-ExecStart=/usr/bin/node /home/pi/family/node-home-nvr/bin/nvr.js
+ExecStart=/usr/bin/node /home/pi/family/node-home-nvr/bin/monitor.js
 Restart=always
 
 WatchdogSec=43200

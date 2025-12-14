@@ -484,6 +484,54 @@ app.post('/api/upload/file', fileUpload.single('file'), (req, res) => {
 });
 ////////////////////////////////////////////////////////////////
 
+// Route to handle legacy mp4stream endpoint and redirect to videos endpoint
+app.get('/mp4stream', (req, res) => {
+    const { device, date, file } = req.query;
+    
+    // Validate required parameters
+    if (!device || !date || !file) {
+        return res.status(400).json({ 
+            status: 'error', 
+            message: 'Missing required parameters: device, date, and file are required' 
+        });
+    }
+    
+    if(cameras.local_footages) {
+        const filepath = path.join(download_path, device, date, file);
+        const stat = fs.statSync(filepath)
+        const fileSize = stat.size
+        const range = req.headers.range
+        if (range) {
+            const CHUNK_SIZE = 10 ** 6;
+            const parts = range.replace(/bytes=/, "").split("-");
+            const start = parseInt(parts[0], 10);
+            const end = Math.min(start + CHUNK_SIZE, fileSize - 1);//parts[1] ? parseInt(parts[1], 10) : fileSize-1
+            // const end = parts[1] ? parseInt(parts[1], 10) : fileSize-1;
+            const chunksize = (end-start)+1
+            const head = {
+                'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+                'Accept-Ranges': 'bytes',
+                'Content-Length': chunksize,
+                'Content-Type': 'video/mp4',
+            }
+            res.writeHead(206, head);
+            const file = fs.createReadStream(filepath, {start, end})
+            file.pipe(res);
+        } else {
+            const head = {
+                'Content-Length': fileSize,
+                'Content-Type': 'video/mp4',
+            }
+            res.writeHead(200, head)
+            fs.createReadStream(filepath).pipe(res)
+        }
+    }
+    else {
+        // Redirect to the videos endpoint
+        const redirectUrl = `/videos/${device}/${date}/${file}`;
+        res.redirect(redirectUrl);
+    }
+});
 
 // Serve video files - configure to stream from download path if local, or proxy if remote
 if (cameras.local_footages) {
@@ -933,7 +981,10 @@ app.get('/listCameras', async (req, res) => {
 setInterval(() => {
     if(cameras.motion_detection_max_workers && cameras.motion_detection_max_workers > 0) {
         // Check if motion service is available
-        axios.get(`http://${cameras.motion_detection_host}:${cameras.motion_detection_port}/health?nvr_host=${cameras.nvr_host}&nvr_port=${cameras.nvr_port}`)
+        const hostStr = `http://${cameras.motion_detection_host}:${cameras.motion_detection_port}`;
+        const nvrdata = `nvr_host=${cameras.nvr_host}&nvr_port=${cameras.nvr_port}`;
+        const zoneData = "";//`&zone_w=${cameras.motion_detection_resize_width}&zone_h=${cameras.motion_detection_resize_height}`;
+        axios.get(`${hostStr}/health?${nvrdata}${zoneData}`)
             .then(response => {
                 //console.log(`Motion service health: ${response.data}`);
             })

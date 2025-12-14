@@ -138,7 +138,7 @@
                         <div class="camera-detail"><strong>Audio:</strong> <%= camera.audio ? 'Yes' : 'No' %></div>
                         <div class="camera-detail"><strong>URL:</strong> <%= camera.url %></div>
                         <div class="camera-detail"><strong>Source:</strong> <%= camera.source !== undefined ? camera.source : 'N/A' %></div>
-                        <div class="camera-detail"><strong>Download Clips:</strong> <%= camera.download_clips ? 'Yes' : 'No' %></div>
+                        <div class="camera-detail"><strong>Download Clips (for android phone):</strong> <%= camera.download_clips ? 'Yes' : 'No' %></div>
                         <div class="camera-detail"><strong>Notifications:</strong> <%= camera.notification ? 'Yes' : 'No' %></div>
                         <div class="camera-detail"><strong>Motion Detection:</strong> <%= camera.motion_detection ? 'Yes' : 'No' %></div>
                     </div>
@@ -189,8 +189,8 @@
                 <label for="cameraEnable">Enable Camera</label>
             </div>
             <div class="checkbox-container">
-                <input type="checkbox" id="downloadClips" name="download_clips">
-                <label for="downloadClips">Download Clips</label>
+                <input type="checkbox" id="downloadClips" name="download_clips" checked>
+                <label for="downloadClips">Download Clips (for android phone)</label>
             </div>
             <div class="checkbox-container">
                 <input type="checkbox" id="notification" name="notification">
@@ -651,7 +651,7 @@
                 <div class="camera-detail"><strong>Audio:</strong> ${cameraData.audio ? 'Yes' : 'No'}</div>
                 <div class="camera-detail"><strong>URL:</strong> ${cameraData.url}</div>
                 <div class="camera-detail"><strong>Source:</strong> ${cameraData.source !== undefined ? cameraData.source : 'N/A'}</div>
-                <div class="camera-detail"><strong>Download Clips:</strong> ${cameraData.download_clips ? 'Yes' : 'No'}</div>
+                <div class="camera-detail"><strong>Download Clips (for android phone):</strong> ${cameraData.download_clips ? 'Yes' : 'No'}</div>
                 <div class="camera-detail"><strong>Notifications:</strong> ${cameraData.notification ? 'Yes' : 'No'}</div>
                 <div class="camera-detail"><strong>Motion Detection:</strong> ${cameraData.motion_detection ? 'Yes' : 'No'}</div>
             `;
@@ -695,7 +695,7 @@
                                         <div class="camera-detail"><strong>Audio:</strong> ${camera.audio ? 'Yes' : 'No'}</div>
                                         <div class="camera-detail"><strong>URL:</strong> ${camera.url}</div>
                                         <div class="camera-detail"><strong>Source:</strong> ${camera.source !== undefined ? camera.source : 'N/A'}</div>
-                                        <div class="camera-detail"><strong>Download Clips:</strong> ${camera.download_clips ? 'Yes' : 'No'}</div>
+                                        <div class="camera-detail"><strong>Download Clips (for android phone):</strong> ${camera.download_clips ? 'Yes' : 'No'}</div>
                                         <div class="camera-detail"><strong>Notifications:</strong> ${camera.notification ? 'Yes' : 'No'}</div>
                                         <div class="camera-detail"><strong>Motion Detection:</strong> ${camera.motion_detection ? 'Yes' : 'No'}</div>
                                     </div>

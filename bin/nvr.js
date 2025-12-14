@@ -526,7 +526,7 @@ app.get('/getCameraList', (req, res) => {
 app.get('/getVideoList', (req,res) => {
     let parms = url.parse(req.url, true).query;
     try {
-        let videoList = utils.getVideoListByDate(config, parms.device, parms.date);
+        let videoList = utils.getVideoListByDate(parms.device, parms.date);
         res.json(videoList);
     } catch (error) {
         res.json({ status: 'error', message: error.message });

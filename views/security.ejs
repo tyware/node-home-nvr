@@ -49,7 +49,6 @@
                         <input type="date" id="dateInput" class="form-control">
                         <button class="btn btn-primary mt-2" id="searchDateBtn" onclick="searchFootageByDate()">Search</button>
                     </div>
-                    <hr>
                     <div id="dateSelector" class="date-selector">
                         <!-- Available dates will be populated here -->
                         <div class="loading">Loading dates...</div>
@@ -195,8 +194,10 @@
         width: 250px;
         background-color: var(--bg-tertiary);
         padding: 10px;
-        overflow-y: auto;
+        overflow-y: hidden;
         border-right: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
     }
     
     .footage-content {
@@ -305,8 +306,8 @@
     }
     
     .date-input-container {
-        padding: 10px 0;
-        margin-bottom: 10px;
+        padding: 1px 0;
+        margin-bottom: 1px;
     }
     
     .date-selector {
@@ -323,8 +324,9 @@
     .hour-list {
         padding: 5px 0;
         margin-top: 10px;
-        max-height: 100%;
+        flex: 1;
         overflow-y: auto;
+        min-height: 0;
     }
     
     .hour-group {
@@ -372,7 +374,7 @@
     }
     
     .hour-content.expanded {
-        max-height: 500px;
+        max-height: none;
         overflow-y: auto;
     }
     
