@@ -24,15 +24,18 @@ sudo apt-get install -y libgstreamer1.0-0 libgstreamer-plugins-base1.0-0 gstream
 # Get current working directory	  
 CURRENT_DIR=$(pwd)
 # Replace the path in the service file
-sed -i "s|/home-nvr-path|$CURRENT_DIR|g" services/home.service
+sed -i "s|/home-nvr-path|$CURRENT_DIR|g" services/nvr-home.service
 sed -i "s|/home-nvr-path|$CURRENT_DIR|g" services/nvr.service
+sed -i "s|/home-nvr-path|$CURRENT_DIR|g" services/nvr-monitor.service
 sed -i "s|/home-nvr-path|$CURRENT_DIR|g" services/motion-server.service
 
-sudo cp -f services/home.service /etc/systemd/system/
+sudo cp -f services/nvr-home.service /etc/systemd/system/
 sudo cp -f services/nvr.service /etc/systemd/system/
+sudo cp -f services/nvr-monitor.service /etc/systemd/system/
 sudo cp -f services/motion-server.service /etc/systemd/system/
 
-sudo systemctl enable home.service
+sudo systemctl enable nvr-home.service
 sudo systemctl enable nvr.service
+sudo systemctl enable nvr-monitor.service
 sudo systemctl enable motion-server.service
 

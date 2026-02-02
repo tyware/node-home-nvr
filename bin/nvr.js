@@ -94,6 +94,31 @@ app.post('/api/config/global', (req, res) => {
     }
 });
 
+// API to get thumbnail
+app.get('/api/thumbnails/:cameraName', (req, res) => {
+    const { cameraName } = req.params;
+    
+    try {
+        // Get thumbnail from local filesystem
+        const thumbnailPath = path.join(download_path, 'thumbnails', `${cameraName}.jpg`);
+        
+        // Check if thumbnail file exists
+        if (fs.existsSync(thumbnailPath)) {
+            // Set appropriate headers for image
+            res.setHeader('Content-Type', 'image/jpeg');
+            res.setHeader('Cache-Control', 'no-cache');
+            
+            // Send the thumbnail file
+            res.sendFile(path.resolve(thumbnailPath));
+        } else {
+            // If thumbnail doesn't exist, return 404
+            res.status(404).json({ status: 'error', message: 'Thumbnail not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+});
+
 // API to add a new camera
 app.post('/api/camera', (req, res) => {
     // Simon Confirmed
@@ -509,6 +534,42 @@ app.get('/api/security/video-info/:cameraName/:date/:filename', (req, res) => {
         });
     } catch (error) {
         res.json({ status: 'error', message: error.message });
+    }
+});
+
+// API to set motion info for video file - used by motion detection service
+app.post('/api/set-motion', (req, res) => {
+    // Simon Confirmed
+    try {
+        const data = req.body;
+        // Validate required fields
+        if (!data.device || !data.date || ! data.motions) {
+            return res.json({ status: 'error', message: 'device_sn, date and motions information are required' });
+        }
+
+        console.log("[NVR] set motion: " + data.device + ", " + data.date);
+
+        utils.saveMotions(data.device, data.date, data.motions);
+
+        res.json({ status: 'success', message: 'Motion info saved successfully' });
+
+    } catch (error) {
+        res.json({ status: 'error', message: error.message });
+    }
+});
+
+// API endpoint to get motion events for a specific camera and date
+app.get('/api/motion/events/:cameraName/:date', async (req, res) => {
+    // Simon confirmed
+    try {
+        const { cameraName, date } = req.params;
+        let result = utils.getMotions(cameraName, date);
+        res.json(result);
+    } catch (error) {
+        res.json({
+            status: "failed",
+            events: []
+        });
     }
 });
 

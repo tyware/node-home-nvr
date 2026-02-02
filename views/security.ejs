@@ -15,14 +15,10 @@
                     <h2 class="camera-name"><%= camera.name %></h2>
                 </div>
                 <div class="camera-thumbnail" onclick="viewLiveStream('<%= camera.name %>')">
-                    <% if (camera.hasFootage) { %>
-                        <% if (camera.thumbnailUrl) { %>
-                            <img src="<%= camera.thumbnailUrl %>" alt="<%= camera.name %> thumbnail" onerror="this.onerror=null; this.src='/images/camera-placeholder.jpg'; this.classList.add('no-thumbnail');">
-                        <% } else { %>
-                            <div class="no-thumbnail">No thumbnail available</div>
-                        <% } %>
+                    <% if (camera.thumbnailUrl) { %>
+                        <img src="<%= camera.thumbnailUrl %>" alt="<%= camera.name %> thumbnail" onerror="this.onerror=null; this.src='/images/camera-placeholder.jpg'; this.classList.add('no-thumbnail');">
                     <% } else { %>
-                        <div class="no-footage">No footage available</div>
+                        <div class="no-thumbnail">No thumbnail available</div>
                     <% } %>
                     <div class="live-indicator">CLICK FOR LIVE</div>
                 </div>

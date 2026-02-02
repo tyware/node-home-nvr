@@ -158,21 +158,25 @@ app.get('/upload', (req, res) => {
 app.get('/security', (req, res) => {
     // Get all cameras for display
     const cameraList = cameras.cameras.filter(camera => camera.enable).map(camera => {
-        const cameraPath = path.join(download_path, camera.name);
-        // Check if camera has footage by checking if directory exists and has content
-        const hasFootage = fs.existsSync(cameraPath) && 
-                          fs.readdirSync(cameraPath).some(item => 
-                              fs.statSync(path.join(cameraPath, item)).isDirectory());
+        // const cameraPath = path.join(download_path, camera.name);
+        // // Check if camera has footage by checking if directory exists and has content
+        // const hasFootage = fs.existsSync(cameraPath) && 
+        //                   fs.readdirSync(cameraPath).some(item => 
+        //                       fs.statSync(path.join(cameraPath, item)).isDirectory());
         
-        // Check if thumbnail exists, add timestamp to prevent caching
-        const thumbnailPath = path.join(download_path, 'thumbnails', `${camera.name}.jpg`);
-        const thumbnailExists = fs.existsSync(thumbnailPath);
-        const cacheParam = thumbnailExists ? `?t=${Date.now()}` : '';
+        // // Check if thumbnail exists, add timestamp to prevent caching
+        // const thumbnailPath = path.join(download_path, 'thumbnails', `${camera.name}.jpg`);
+        // const thumbnailExists = fs.existsSync(thumbnailPath);
+        // const cacheParam = thumbnailExists ? `?t=${Date.now()}` : '';
+        // //const result = await forwardToNvrApi('get', `/api/security/search-footage/${cameraName}/${date}`);
         
+        // return {
+        //     name: camera.name,
+        //     thumbnailUrl: thumbnailExists ? `/thumbnails/${camera.name}.jpg${cacheParam}` : ''
+        // };
         return {
             name: camera.name,
-            thumbnailUrl: thumbnailExists ? `/thumbnails/${camera.name}.jpg${cacheParam}` : '',
-            hasFootage: hasFootage
+            thumbnailUrl: `/api/thumbnails/${camera.name}?t=${Date.now()}`
         };
     });
     
@@ -180,6 +184,31 @@ app.get('/security', (req, res) => {
         title: "Family Security",
         cameras: cameraList
     });
+});
+
+// API to get thumbnail
+app.get('/api/thumbnails/:cameraName', async (req, res) => {
+
+    const { cameraName } = req.params;
+    
+    try {
+        // Forward request to NVR API and pipe the response
+        const nvrUrl = `${getNvrApiServer()}/api/thumbnails/${cameraName}`;
+        const axios = require('axios');
+        
+        const response = await axios.get(nvrUrl, {
+            responseType: 'stream'
+        });
+        
+        // Set the content type from the nvr response
+        res.setHeader('Content-Type', response.headers['content-type'] || 'image/jpeg');
+        res.setHeader('Cache-Control', 'no-cache');
+        
+        // Pipe the image stream to the client
+        response.data.pipe(res);
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
 });
 
 // API to get footage dates for a specific camera
@@ -356,7 +385,8 @@ app.get('/api/security/video-info/:cameraName/:date/:filename', async (req, res)
             
             // If successful, adjust the path to use the remote URL
             if (result.status === 'success') {
-                result.info.path = `${getNvrApiServer()}/videos/${cameraName}/${date}/${filename}`;
+                // result.info.path = `${getNvrApiServer()}/videos/${cameraName}/${date}/${filename}`;
+                result.info.path = `/videos/${cameraName}/${date}/${filename}`;
                 result.info.host = getNvrApiServer();
                 result.info.url = `/videos/${cameraName}/${date}/${filename}`;
             }
@@ -570,8 +600,8 @@ if (cameras.local_footages) {
 // Serve thumbnail files (adjust path as needed)
 app.use('/thumbnails', express.static(path.join(download_path, 'thumbnails')));
 
-// HLS stream endpoint
-app.get('/api/security/live-stream/:cameraName', (req, res) => {
+// HLS stream endpoint - proxy/relay approach
+app.get('/api/security/live-stream/:cameraName', async (req, res) => {
 
     // Simon confirmed
     const cameraName = req.params.cameraName;
@@ -583,8 +613,7 @@ app.get('/api/security/live-stream/:cameraName', (req, res) => {
         return res.json({ status: 'error', message: 'Camera not found' });
     }
     
-    // MediaMTX HLS address - assume running on 127.0.0.1:8888
-    const hlsUrl = `http://${cameras.nvr_host}:8888/${cameraName}/index.m3u8`;
+    const hlsUrl = `http://${req.host}/hls/${cameraName}/index.m3u8`;
     
     // Return the URL and camera info
     res.json({ 
@@ -593,6 +622,102 @@ app.get('/api/security/live-stream/:cameraName', (req, res) => {
         hlsUrl: hlsUrl
     });
 });
+
+app.get('/hls/:cameraName/:file', async (req, res) => {
+    try {
+        const cameraName = req.params.cameraName;
+        const fileName = req.params.file;
+        const localHlsUrl = `http://${cameras.nvr_host}:8888/${cameraName}/${fileName}`;
+        
+       // Fetch the stream from local MediaMTX
+        const response = await axios({
+            method: 'GET',
+            url: localHlsUrl,
+            responseType: 'stream',
+            timeout: 30000
+        });
+        
+        // Set appropriate headers for HLS stream
+        res.set({
+            'Content-Type': response.headers['content-type'] || 'application/vnd.apple.mpegurl',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+        });
+        
+        // Pipe the stream from MediaMTX to the client
+        response.data.pipe(res);
+    } catch (error) {
+        console.error(`Error proxying HLS stream for ${cameraName}:`, error.message);
+        res.status(500).json({ 
+            status: 'error', 
+            message: 'Stream not available',
+            error: error.message 
+        });
+    }
+});
+
+// WebRTC stream endpoint - proxy/relay approach (alternative to RTSP for web clients)
+app.get('/api/security/webrtc-stream/:cameraName', async (req, res) => {
+    const cameraName = req.params.cameraName;
+    
+    // Find the camera in our config
+    const camera = cameras.cameras.find(cam => cam.name === cameraName);
+    
+    if (!camera) {
+        return res.json({ status: 'error', message: 'Camera not found' });
+    }
+    
+    // WebRTC URL pointing to MediaMTX via our proxy
+    const webrtcUrl = `http://${req.host}/webrtc/${cameraName}`;
+    
+    // Return the URL and camera info
+    res.json({ 
+        status: 'success',
+        cameraName: camera.name,
+        webrtcUrl: webrtcUrl
+    });
+});
+
+// WebRTC proxy endpoint
+app.all('/webrtc/:cameraName', async (req, res) => {
+    try {
+        const cameraName = req.params.cameraName;
+        
+        // MediaMTX WebRTC endpoint (typically on port 8889)
+        const webrtcUrl = `http://${cameras.nvr_host}:8889/${cameraName}`;
+        
+        // Forward the request to MediaMTX
+        const response = await axios({
+            method: req.method,
+            url: webrtcUrl,
+            data: req.body,
+            headers: {
+                ...req.headers,
+                host: `${cameras.nvr_host}:8889`
+            },
+            responseType: 'stream',
+            timeout: 30000
+        });
+        
+        // Set response headers
+        Object.keys(response.headers).forEach(key => {
+            res.set(key, response.headers[key]);
+        });
+        
+        // Pipe the response
+        response.data.pipe(res);
+        
+    } catch (error) {
+        console.error(`Error proxying WebRTC for ${cameraName}:`, error.message);
+        res.status(500).json({ 
+            status: 'error', 
+            message: 'WebRTC stream not available',
+            error: error.message 
+        });
+    }
+});
+
 
 // ====== PROXY API ROUTES TO NVR.JS ======
 
@@ -914,14 +1039,26 @@ app.post('/api/motion/detect', async (req, res) => {
 app.get('/api/motion/events/:cameraName/:date', async (req, res) => {
     // Simon confirmed
     try {
-        // Forward the request to the NVR server
         const { cameraName, date } = req.params;
-        // const endpoint = `/api/motion/events/${cameraName}/${date}`;
-        // const result = await forwardToNvrApi('get', endpoint);
-        const hostStr = `http://${cameras.motion_detection_host}:${cameras.motion_detection_port}`;
-        const endpoint = `/motions?camera=${cameraName}&date=${date}`;
-        const result = await forwardToApi('get', hostStr, endpoint);
-        res.json(result);
+        if (!cameras.local_footages) {
+            // Forward the request to the NVR server
+            const endpoint = `/api/motion/events/${cameraName}/${date}`;
+            const result = await forwardToNvrApi('get', endpoint);
+            res.json(result);
+        }
+        else {
+            let result = utils.getMotions(cameraName, date);
+            res.json(result);
+        }
+        
+        ///////////////////////////////////////////////////////////
+        // sent to motion detection server directly - deprecated
+        ///////////////////////////////////////////////////////////
+        // const hostStr = `http://${cameras.motion_detection_host}:${cameras.motion_detection_port}`;
+        // const endpoint = `/motions?camera=${cameraName}&date=${date}`;
+        // // Forward the request to the motion detection server
+        // const result = await forwardToApi('get', hostStr, endpoint);
+        // res.json(result);
     } catch (error) {
         res.json({ status: 'error', message: error.message });
     }

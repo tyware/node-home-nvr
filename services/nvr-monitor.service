@@ -4,11 +4,11 @@ Description=Home NVR monitor
 [Service]
 Type=simple
 User=pi
-ExecStart=/usr/bin/node /home/pi/family/node-home-nvr/bin/monitor.js
+ExecStart=/usr/bin/node /home-nvr-path/bin/monitor.js
 Restart=always
 
 WatchdogSec=43200
-WorkingDirectory=/home/pi/family/node-home-nvr/
+WorkingDirectory=/home-nvr-path/
 
 [Install]
 WantedBy=multi-user.target

@@ -4,11 +4,11 @@ Description=Home server (port 8080)
 [Service]
 Type=simple
 User=pi
-ExecStart=/usr/bin/node /home/pi/family/node-home-nvr/bin/home.js
+ExecStart=/usr/bin/node /home-nvr-path/bin/home.js
 Restart=always
 
 WatchdogSec=43200
-WorkingDirectory=/home/pi/family/node-home-nvr/
+WorkingDirectory=/home-nvr-path/
 
 [Install]
 WantedBy=multi-user.target
